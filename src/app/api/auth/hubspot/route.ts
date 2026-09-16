@@ -1,28 +1,28 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
+import { GATE_URL } from '@/app/lib/config';
+import { LEAD_COOKIE, STATE_COOKIE, openLead, readCookie } from '@/app/lib/lead';
 
 export async function GET(request: Request) {
-    // Dynamically calculate the Redirect URI based on the request host (no .env variable needed)
     const clientId = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_ID;
     const host = request.headers.get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
-    const redirectUri = `${protocol}://${host}/api/auth/hubspot/callback`;
+    const local = Boolean(host?.includes('localhost'));
+    const redirectUri = `${local ? 'http' : 'https'}://${host}/api/auth/hubspot/callback`;
 
-    // Define required scopes for Health Check (must match HubSpot exactly)
-    const scopes = [
-        'crm.objects.contacts.read',
-        'crm.objects.deals.read',
-        'crm.schemas.companies.read',
-        'oauth',
-        'settings.users.read'
-    ].join('%20');
-
-    if (!clientId || !redirectUri) {
+    if (!clientId) {
         return NextResponse.json({ error: 'HubSpot configuration missing' }, { status: 500 });
     }
 
-    // Construct HubSpot OAuth Authorization URL
-    const authorizationUrl = `https://app.hubspot.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes}`;
+    // One gate, and it is on the Muloo site. No lead, no audit.
+    if (!openLead(readCookie(request, LEAD_COOKIE))) {
+        return NextResponse.redirect(GATE_URL);
+    }
 
-    // Redirect user to HubSpot
-    return NextResponse.redirect(authorizationUrl);
+    const scopes = ['crm.objects.contacts.read', 'crm.objects.deals.read', 'crm.schemas.companies.read', 'oauth', 'settings.users.read'].join('%20');
+    const state = crypto.randomBytes(16).toString('base64url');
+    const authorizationUrl = `https://app.hubspot.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes}&state=${state}`;
+
+    const response = NextResponse.redirect(authorizationUrl);
+    response.cookies.set(STATE_COOKIE, state, { httpOnly: true, secure: !local, sameSite: 'lax', path: '/', maxAge: 600 });
+    return response;
 }

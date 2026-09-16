@@ -1,92 +1,88 @@
 'use client';
 
-import { useState } from 'react';
-import Logo from '../components/Logo';
+import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
-export default function Home() {
+/*
+ * Start page. The lead was captured by the HubSpot form on the Muloo site and
+ * arrives in the URL fragment. We hold it server side for the OAuth round
+ * trip and clear it from the address bar. Anyone who arrives without one is
+ * sent to the site's form: one gate, and it lives in HubSpot.
+ */
+const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://build.wearemuloo.com/hubspot-audit';
+const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://build.wearemuloo.com/book-a-call';
+
+function readFragmentLead(): Record<string, string> | null {
+  const match = window.location.hash.match(/(?:^#|&)mu=([A-Za-z0-9_-]+)/);
+  if (!match) return null;
+  try {
+    const b64 = match[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(escape(window.atob(b64 + '==='.slice((b64.length + 3) % 4))));
+    return JSON.parse(json);
+  } catch { return null; }
+}
+
+export default function Start() {
+  const [state, setState] = useState<'checking' | 'ready'>('checking');
   const [firstName, setFirstName] = useState('');
-  const [email, setEmail] = useState('');
 
-  const handleInstantAudit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (firstName && email) {
-      console.log('Initiating Instant Audit for:', { firstName, email });
-      // Redirect to kickoff the HubSpot OAuth Flow
-      window.location.href = '/api/auth/hubspot';
-    }
-  };
-
-  const handleManualAudit = () => {
-    // Later: redirect to manual audit questionnaire
-    console.log('Navigating to Manual Audit');
-    alert('Manual Audit placeholder');
-  };
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const lead = readFragmentLead();
+      if (lead) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        const r = await fetch('/api/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lead) });
+        if (r.ok) {
+          const d = await r.json();
+          if (!cancelled) { setFirstName(d.firstName || ''); setState('ready'); }
+          return;
+        }
+      }
+      const r = await fetch('/api/lead', { cache: 'no-store' });
+      const d = r.ok ? await r.json() : { hasLead: false };
+      if (d.hasLead) {
+        if (!cancelled) { setFirstName(d.firstName || ''); setState('ready'); }
+      } else {
+        window.location.replace(GATE_URL);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
-    <main className={styles.pageWrapper}>
-      <div className={styles.container}>
+    <main className={styles.wrap}>
+      <section className={styles.copy}>
+        <p className={`mono ${styles.eyebrow}`}>Free HubSpot audit</p>
+        <h1>{firstName ? <>{firstName}, one step left. <span className="text-gradient">Connect your portal.</span></> : <>Connect your portal and <span className="text-gradient">see what is wrong with it.</span></>}</h1>
+        <p className={styles.lead}>The audit runs live against your own HubSpot data, so the score is about your portal, not a benchmark. It takes about a minute.</p>
+        <ul className={styles.checks}>
+          <li>Leads with no owner, and what that does to routing</li>
+          <li>Who holds super admin, and whether they should</li>
+          <li>Custom property sprawl on contacts</li>
+          <li>Deals that have stalled in the pipeline</li>
+          <li>Contacts arriving with no attributable source</li>
+        </ul>
+      </section>
 
-        {/* Hero Section */}
-        <section className={styles.hero}>
-          <div className={styles.logoContainer}>
-            <Logo serviceName="Hub" serviceColor="#00D1FF" />
-          </div>
-          <h1>
-            Is your HubSpot Portal <span className="text-gradient">truly healthy?</span>
-          </h1>
-          <p>
-            Uncover duplicate records, unused seats, and broken automations in seconds.
-            Get an instant 10-point technical audit and reclaim your CRM efficiency.
-          </p>
-        </section>
-
-        {/* Gated Form Card */}
-        <section className={styles.formCard}>
-          <h2>Start Your Free Audit</h2>
-          <p>Enter your details to get your personalized WebGrader score.</p>
-
-          <form onSubmit={handleInstantAudit}>
-            <div className={styles.formGroup}>
-              <input
-                type="text"
-                placeholder="First Name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <input
-                type="email"
-                placeholder="Work Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className={styles.formActions}>
-              <button type="submit" className="btn-primary">
-                Instant Automated Audit ✨
-              </button>
-              <button type="button" className={styles.manualAuditBtn} onClick={handleManualAudit}>
-                Or take the 10-Minute Manual Audit &rarr;
-              </button>
-            </div>
-          </form>
-
-          {/* Trust Elements */}
-          <div className={styles.trustBadges}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>Read-only access. Zero data stored.</span>
-          </div>
-
-        </section>
-
-      </div>
+      <section className={styles.card} aria-live="polite">
+        {state === 'checking' ? (
+          <p className={styles.loading}>Checking your details…</p>
+        ) : (
+          <>
+            <h2>Connect HubSpot</h2>
+            <p>You approve access on HubSpot&apos;s own screen. Nothing is changed in your portal.</p>
+            <ol className={styles.steps}>
+              <li><span><strong>Approve read only access.</strong> Contacts, deals, company properties and users.</span></li>
+              <li><span><strong>We run the checks.</strong> Live, against your data, in about a minute.</span></li>
+              <li><span><strong>Your report opens.</strong> Score, findings and the fix for each one.</span></li>
+            </ol>
+            <a className={`btn-primary ${styles.btn}`} href="/api/auth/hubspot">Connect HubSpot and run the audit</a>
+            <p className={`mono ${styles.note}`}>You need to be a HubSpot super admin, or have app install rights.</p>
+            <p className={styles.alt}>Would rather not connect it? <a href={BOOK_URL}>Book thirty minutes with Jarrud</a> and we will walk through it with you.</p>
+          </>
+        )}
+      </section>
     </main>
   );
 }

@@ -27,7 +27,7 @@
 .header h1 {
     font-size: clamp(2.5rem, 4vw, 3.5rem);
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #fff 0%, #A1A1AA 100%);
+    background: linear-gradient(135deg, #fff 0%, #9BA3B5 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -62,9 +62,9 @@
     height: 180px;
     flex-shrink: 0;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255, 122, 89, 0.1) 0%, rgba(255, 122, 89, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(0, 196, 204, 0.12) 0%, rgba(193, 64, 255, 0.06) 100%);
     border: 4px solid var(--accent-primary);
-    box-shadow: 0 0 40px rgba(255, 122, 89, 0.2);
+    box-shadow: 0 0 40px rgba(0, 196, 204, 0.22);
 }
 
 .scoreValue {
@@ -83,7 +83,7 @@
 .scoreText h2 {
     font-size: 2rem;
     margin-bottom: 1rem;
-    color: #FFA726;
+    color: #F47621;
     /* Warning color for 65 score */
 }
 
@@ -126,15 +126,15 @@
 }
 
 .resultCard.error {
-    border-left: 4px solid #EF4444;
+    border-left: 4px solid #E5397A;
 }
 
 .resultCard.warning {
-    border-left: 4px solid #F59E0B;
+    border-left: 4px solid #F47621;
 }
 
 .resultCard.success {
-    border-left: 4px solid #10B981;
+    border-left: 4px solid #59BF96;
 }
 
 .resultCard p {
@@ -146,10 +146,10 @@
 .recommendationBox {
     margin-top: 1rem;
     padding: 1rem;
-    background: rgba(16, 185, 129, 0.05);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(89, 191, 150, 0.06);
+    border: 1px solid rgba(89, 191, 150, 0.25);
     border-radius: 8px;
-    color: #A7F3D0;
+    color: #BFEBD9;
     font-size: 0.9rem;
     line-height: 1.5;
 }
@@ -236,8 +236,8 @@
 }
 
 .ctaCard {
-    background: linear-gradient(135deg, rgba(123, 97, 255, 0.1) 0%, rgba(255, 122, 89, 0.1) 100%);
-    border: 1px solid rgba(123, 97, 255, 0.3);
+    background: linear-gradient(135deg, rgba(193, 64, 255, 0.12) 0%, rgba(0, 196, 204, 0.12) 100%);
+    border: 1px solid rgba(193, 64, 255, 0.35);
     border-radius: 24px;
     padding: 4rem 3rem;
     text-align: center;
@@ -294,3 +294,8 @@
         padding: 2rem;
     }
 }
+.statusDot { width: 10px; height: 10px; border-radius: 50%; flex: none; display: inline-block; }
+.statusDot.error { background: #E5397A; }
+.statusDot.warning { background: #F47621; }
+.statusDot.success { background: #59BF96; }
+.ctaActions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 1.5rem; }

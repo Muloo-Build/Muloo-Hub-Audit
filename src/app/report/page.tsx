@@ -2,9 +2,17 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
 import styles from './report.module.css';
+
+const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://build.wearemuloo.com/hubspot-audit';
+const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://build.wearemuloo.com/book-a-call';
+
+const REASONS: Record<string, string> = {
+    'not-connected': 'HubSpot access was not approved, so there was nothing to audit.',
+    expired: 'The connection took too long or was opened in another tab. Start it again.',
+    token: 'HubSpot did not hand back access. This is usually a permissions issue on the portal.',
+    audit: 'We connected, but the checks could not finish. We have been notified.',
+};
 
 function ReportContent() {
     const searchParams = useSearchParams();
@@ -13,7 +21,7 @@ function ReportContent() {
     const [reportDate, setReportDate] = useState('');
 
     useEffect(() => {
-        setReportDate(new Date().toLocaleDateString());
+        setReportDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
     }, []);
 
     let auditData = null;
@@ -29,13 +37,15 @@ function ReportContent() {
     const metrics = auditData?.metrics ?? [];
 
     if (status !== 'success') {
+        const reason = REASONS[searchParams.get('reason') || ''] || 'There was an issue connecting to your HubSpot portal.';
         return (
             <div className={styles.container}>
-                <h2>Audit Did Not Complete</h2>
-                <p>There was an issue connecting to your HubSpot portal.</p>
-                <Link href="/" className="btn-primary" style={{ marginTop: '2rem', display: 'inline-block' }}>
-                    Try Again
-                </Link>
+                <h2>The audit did not complete</h2>
+                <p>{reason}</p>
+                <div className={styles.ctaActions}>
+                    <a href="/start" className="btn-primary">Try again</a>
+                    <a href={BOOK_URL} className="btn-ghost">Talk to Jarrud instead</a>
+                </div>
             </div>
         );
     }
@@ -43,11 +53,8 @@ function ReportContent() {
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <div className={styles.logoContainer}>
-                    <Image src="/muloo-logo.png" alt="Muloo Logo" width={180} height={50} style={{ objectFit: 'contain' }} priority />
-                </div>
-                <h1>Your HubSpot Health Report</h1>
-                <p>Analyzed on {reportDate}</p>
+                <h1>Your HubSpot audit</h1>
+                <p>Analysed on {reportDate}</p>
             </header>
 
             <section className={styles.scoreSection}>
@@ -56,8 +63,8 @@ function ReportContent() {
                     <span className={styles.scoreLabel}>/ 100</span>
                 </div>
                 <div className={styles.scoreText}>
-                    <h2>Action Required</h2>
-                    <p>Your portal is operational but leaking efficiency. Fixing these core issues could save your team 10+ hours a week and prevent lost deals.</p>
+                    <h2>{overallScore >= 85 ? 'In good shape' : overallScore >= 60 ? 'Worth fixing' : 'Action required'}</h2>
+                    <p>{overallScore >= 85 ? 'The basics are sound. The findings below are the edges worth tidying before they grow.' : 'Your portal runs, but it is leaking time and trust. Each finding below comes with the fix.'}</p>
                 </div>
             </section>
 
@@ -65,9 +72,7 @@ function ReportContent() {
                 {metrics.map((metric: { title: string; status: 'success' | 'warning' | 'error'; description: string; recommendation?: string }, i: number) => (
                     <div key={i} className={`${styles.resultCard} ${styles[metric.status]}`}>
                         <div className={styles.cardHeader}>
-                            <span className={styles.statusIcon}>
-                                {metric.status === 'success' ? '✅' : metric.status === 'warning' ? '⚠️' : '🚨'}
-                            </span>
+                            <span className={`${styles.statusDot} ${styles[metric.status]}`} aria-label={metric.status === 'success' ? 'Passed' : metric.status === 'warning' ? 'Warning' : 'Critical'} role="img" />
                             <h3>{metric.title}</h3>
                         </div>
                         <p>{metric.description}</p>
@@ -75,7 +80,7 @@ function ReportContent() {
                         {/* Render actionable advice if the test did not pass */}
                         {metric.status !== 'success' && metric.recommendation && (
                             <div className={styles.recommendationBox}>
-                                <strong>💡 Instant Fix:</strong> {metric.recommendation}
+                                <strong>The fix:</strong> {metric.recommendation}
                             </div>
                         )}
                     </div>
@@ -99,7 +104,7 @@ function ReportContent() {
                     <div className={styles.stepCard}>
                         <div className={styles.stepNumber}>02</div>
                         <h3>CRM Audit & Data Assessment</h3>
-                        <p>A deep dive inside your portal (where automating tools can"t go) to evaluate user adoption, behavioural data, tracking, scoring layers, and the gaps between your current system and future needs.</p>
+                        <p>A deep dive inside your portal (where automated tools cannot go) to evaluate user adoption, behavioural data, tracking, scoring layers, and the gaps between your current system and future needs.</p>
                     </div>
 
                     <div className={styles.stepCard}>
@@ -111,21 +116,22 @@ function ReportContent() {
                     <div className={styles.stepCard}>
                         <div className={styles.stepNumber}>04</div>
                         <h3>Review & Presentation</h3>
-                        <p>A dedicated session with your leadership to walk through our findings, priority recommendations, resourcing options, and a clear timeline for optimizing your CRM.</p>
+                        <p>A dedicated session with your leadership to walk through our findings, priority recommendations, resourcing options, and a clear timeline for getting your CRM right.</p>
                     </div>
                 </div>
             </section>
 
             <section className={styles.ctaSection}>
                 <div className={styles.ctaCard}>
-                    <h2>Ready to unlock your portal's true potential?</h2>
+                    <h2>Want the rest of the picture?</h2>
                     <p>
                         This automated test identified immediate technical debt, but resolving your core efficiency issues requires a strategic plan.
-                        Book a Discovery Call to discuss our comprehensive <strong>HubSpot Blueprint Audit</strong> and get a step-by-step remediation plan customized for your business.
+                        Book a call to talk through the full <strong>HubSpot Blueprint Audit</strong> and get a step-by-step remediation plan built around your business.
                     </p>
-                    <button className="btn-primary" onClick={() => window.location.href = 'https://www.wearemuloo.com/meetings/jarrud2/hubspot-audit-tool'}>
-                        Book a Discovery Call
-                    </button>
+                    <div className={styles.ctaActions}>
+                        <a className="btn-primary" href={BOOK_URL}>Book thirty minutes with Jarrud</a>
+                        <a className="btn-ghost" href={GATE_URL.replace('/hubspot-audit', '/solutions/portal-rescue')}>See portal rescue</a>
+                    </div>
                 </div>
             </section>
         </div>

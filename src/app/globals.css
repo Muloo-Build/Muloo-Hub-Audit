@@ -1,198 +1,77 @@
+/* Muloo 2026 tokens, mirrored from the muloo-2026 HubSpot theme so the audit
+   reads as part of the site. Keep these in step with theme fields.json. */
 :root {
-  --bg-color: #0A0A0A;
-  --text-primary: #FFFFFF;
-  --text-secondary: #A1A1AA;
-  --accent-primary: #FF7A59;
-  /* HubSpot Orange */
-  --accent-secondary: #7B61FF;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-  --font-inter: 'Inter', sans-serif;
-  --font-outfit: 'Outfit', sans-serif;
+  --muloo-navy: #050A30;
+  --section-deep: #0A1040;
+  --muloo-teal: #00C4CC;
+  --muloo-orange: #F47621;
+  --stream-build: #155DFC;
+  --stream-revops: #E5397A;
+  --stream-ai: #C140FF;
+  --stream-empower: #59BF96;
+  --fg-1: #FFFFFF;
+  --fg-2: #9BA3B5;
+  --fg-3: rgba(255, 255, 255, 0.55);
+  --surface-card: hsl(233 60% 14%);
+  --surface-2: hsl(233 60% 20%);
+  --border-soft: rgba(255, 255, 255, 0.10);
+  --gradient-muloo: linear-gradient(135deg, #00C4CC 0%, #C140FF 50%, #F47621 100%);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+
+  /* Legacy names still used by report.module.css, pointed at the new palette. */
+  --bg-color: var(--muloo-navy);
+  --text-primary: var(--fg-1);
+  --text-secondary: var(--fg-2);
+  --accent-primary: var(--muloo-teal);
+  --accent-secondary: var(--stream-ai);
+  --glass-bg: var(--surface-card);
+  --glass-border: var(--border-soft);
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --font-outfit: var(--font-sans);
+  --font-inter: var(--font-sans);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  font-family: var(--font-inter);
   min-height: 100vh;
-  overflow-x: hidden;
-  position: relative;
+  background: radial-gradient(1200px 600px at 80% -10%, rgba(193, 64, 255, 0.14), transparent 60%),
+              radial-gradient(900px 500px at -10% 10%, rgba(0, 196, 204, 0.10), transparent 60%),
+              var(--muloo-navy);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Background Blobs for Visual Interest */
-.blobs {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-  pointer-events: none;
-}
+h1, h2, h3 { font-family: var(--font-sans); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+a { color: var(--muloo-teal); }
+.mono { font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace; font-size: 0.8rem; letter-spacing: 0.04em; }
 
-.blob {
-  position: absolute;
-  filter: blur(100px);
-  border-radius: 50%;
-  opacity: 0.5;
-  animation: float 20s infinite alternate ease-in-out;
-}
+.text-gradient { background: var(--gradient-muloo); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
-.blob-1 {
-  background: var(--accent-primary);
-  width: 500px;
-  height: 500px;
-  top: -150px;
-  left: -150px;
-}
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: min(1160px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0; }
+.brand img { display: block; height: 30px; width: auto; }
+.topbar__tag { color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.12em; }
 
-.blob-2 {
-  background: var(--accent-secondary);
-  width: 600px;
-  height: 600px;
-  bottom: -200px;
-  right: -200px;
-  animation-delay: -10s;
-}
-
-@keyframes float {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  100% {
-    transform: translate(50px, 50px) scale(1.1);
-  }
-}
-
-/* Globals Typography */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-outfit);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-/* Gradient Text */
-.text-gradient {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Base Inputs & Buttons */
-input {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-family: var(--font-inter);
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  outline: none;
-}
-
-input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 4px rgba(255, 122, 89, 0.1);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-input::placeholder {
-  color: var(--text-secondary);
-}
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; width: min(1160px, calc(100% - 32px)); margin: auto auto 0; padding: 32px 0; border-top: 1px solid var(--border-soft); color: var(--fg-3); }
+.footer a { color: var(--fg-2); text-decoration: none; }
 
 .btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--accent-primary) 0%, #e25e3e 100%);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-family: var(--font-outfit);
-  font-weight: 600;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 15px rgba(255, 122, 89, 0.3);
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
+  padding: 0.95em 1.6em; border: 0; border-radius: var(--r-pill); cursor: pointer;
+  background: var(--gradient-muloo); color: var(--muloo-navy);
+  font: inherit; font-weight: 700; text-decoration: none;
+  transition: transform 160ms ease, box-shadow 200ms ease;
 }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 196, 204, 0.25); }
+.btn-primary:focus-visible, .btn-ghost:focus-visible { outline: 2px solid var(--fg-1); outline-offset: 3px; }
+.btn-ghost { display: inline-flex; align-items: center; padding: 0.95em 1.6em; border: 1px solid var(--border-soft); border-radius: var(--r-pill); color: var(--fg-1); font-weight: 600; text-decoration: none; }
+.btn-ghost:hover { border-color: var(--fg-3); }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 122, 89, 0.4);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Global Layout & Footer Styles */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.global-footer {
-  margin-top: auto;
-  padding: 2rem;
-  text-align: center;
-  font-family: var(--font-inter);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  border-top: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.brand-link {
-  color: #FFFFFF;
-  text-decoration: none;
-  font-family: var(--font-outfit);
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
-  transition: opacity 0.2s ease;
-}
-
-.brand-link:hover {
-  opacity: 0.8;
-}
-
-.brand-dot {
-  color: #00D1FF;
-  font-weight: 800;
-}
-
-/* Muloo Logo Component Styles */
-.muloo-logo {
-  font-family: var(--font-aileron);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-  font-size: 2rem;
-}
-
-.muloo-logo .service-name {
-  color: var(--accent-primary);
-}
+@media (prefers-reduced-motion: reduce) { .btn-primary { transition: none; } .btn-primary:hover { transform: none; } }

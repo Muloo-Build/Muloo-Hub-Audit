@@ -1,37 +1,32 @@
 import type { Metadata } from 'next';
-import { Inter, Outfit } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-import Logo from '../components/Logo';
+import { SITE_URL } from './lib/config';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
+const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
-  title: 'Muloo Hub | HubSpot Health Check',
-  description: 'Get an instant 10-point technical audit of your HubSpot portal.',
+  title: 'Muloo | HubSpot audit',
+  description: 'A read only technical audit of your HubSpot portal, run live against your own data.',
+  robots: { index: false, follow: false },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en-GB" className={mono.variable}>
       <body>
-        <div className="blobs">
-          <div className="blob blob-1"></div>
-          <div className="blob blob-2"></div>
-        </div>
-        <div className="app-container">
+        <div className="app">
+          <header className="topbar">
+            <a href={SITE_URL} className="brand" aria-label="Muloo home">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/muloo-wordmark.svg" alt="Muloo" width={104} height={30} />
+            </a>
+            <span className="mono topbar__tag">HubSpot audit</span>
+          </header>
           {children}
-          <footer className="global-footer">
-            <p>
-              Built and powered by{' '}
-              <a href="https://www.wearemuloo.com" target="_blank" rel="noopener noreferrer" className="brand-link">
-                <Logo />
-              </a>
-            </p>
+          <footer className="footer mono">
+            <span>Read only. We keep your score and headline findings, never your records.</span>
+            <a href={SITE_URL}>wearemuloo.com</a>
           </footer>
         </div>
       </body>
