@@ -129,7 +129,7 @@ function ReportContent() {
                         Book a call to talk through the full <strong>HubSpot Blueprint Audit</strong> and get a step-by-step remediation plan built around your business.
                     </p>
                     <div className={styles.ctaActions}>
-                        <a className="btn-primary" href={BOOK_URL}>Book thirty minutes with Jarrud</a>
+                        <a className="btn-primary" href={BOOK_URL}>Book forty five minutes with Jarrud</a>
                         <a className="btn-ghost" href={GATE_URL.replace('/hubspot-audit', '/solutions/portal-rescue')}>See portal rescue</a>
                     </div>
                 </div>

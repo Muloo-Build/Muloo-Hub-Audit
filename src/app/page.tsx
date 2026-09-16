@@ -79,7 +79,7 @@ export default function Start() {
             </ol>
             <a className={`btn-primary ${styles.btn}`} href="/api/auth/hubspot">Connect HubSpot and run the audit</a>
             <p className={`mono ${styles.note}`}>You need to be a HubSpot super admin, or have app install rights.</p>
-            <p className={styles.alt}>Would rather not connect it? <a href={BOOK_URL}>Book thirty minutes with Jarrud</a> and we will walk through it with you.</p>
+            <p className={styles.alt}>Would rather not connect it? <a href={BOOK_URL}>Book forty five minutes with Jarrud</a> and we will walk through it with you.</p>
           </>
         )}
       </section>
