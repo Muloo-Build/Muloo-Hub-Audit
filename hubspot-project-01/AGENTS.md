@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working on HubSpot components
 
@@ -81,3 +81,13 @@ IMPORTANT: IF THE 'HubSpot' MCP SERVER IS INSTALLED USE THE TOOLS BEFORE TRYING 
 - Use proper component structure based on component `type` in the `-hsmeta.json` file
 - Ensure configuration files follow HubSpot naming conventions
 - Always validate that components are placed in correct directories
+
+## Shared Work context
+
+Paths are relative to the root of the synced Work folder (`~/Work` on
+stormtrooper, `/Users/user/Work` on the MacBook). Its root `AGENTS.md` applies
+here too.
+
+- Master memory: `00 Memory/MEMORY.md`
+- Project catalog: `PROJECT_CATALOG.md`
+- Session handoffs: `00 Memory/sessions/`
