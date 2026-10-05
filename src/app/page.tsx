@@ -9,8 +9,8 @@ import styles from './page.module.css';
  * trip and clear it from the address bar. Anyone who arrives without one is
  * sent to the site's form: one gate, and it lives in HubSpot.
  */
-const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://build.wearemuloo.com/hubspot-audit';
-const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://build.wearemuloo.com/book-a-call';
+const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://www.wearemuloo.com/hubspot-audit';
+const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://www.wearemuloo.com/book-a-call';
 
 function readFragmentLead(): Record<string, string> | null {
   const match = window.location.hash.match(/(?:^#|&)mu=([A-Za-z0-9_-]+)/);

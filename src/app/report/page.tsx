@@ -4,8 +4,8 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styles from './report.module.css';
 
-const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://build.wearemuloo.com/hubspot-audit';
-const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://build.wearemuloo.com/book-a-call';
+const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://www.wearemuloo.com/hubspot-audit';
+const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://www.wearemuloo.com/book-a-call';
 
 const REASONS: Record<string, string> = {
     'not-connected': 'HubSpot access was not approved, so there was nothing to audit.',
