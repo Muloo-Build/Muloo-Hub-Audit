@@ -1,17 +1,16 @@
 .wrap { width: min(1160px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 80px; display: grid; gap: 48px; align-items: center; }
 @media (min-width: 900px) { .wrap { grid-template-columns: 1.1fr 0.9fr; padding-top: 72px; } }
 
-.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--border-soft); border-radius: var(--r-pill); color: var(--muloo-teal); text-transform: uppercase; letter-spacing: 0.14em; }
-.eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muloo-teal); }
 .copy h1 { margin: 20px 0 16px; font-size: clamp(2.1rem, 5vw, 3.5rem); }
 .lead { color: var(--fg-2); font-size: clamp(1.05rem, 2vw, 1.25rem); max-width: 560px; }
 
 .checks { list-style: none; margin-top: 28px; display: grid; gap: 10px; }
 .checks li { display: flex; gap: 12px; color: var(--fg-2); }
+.checks strong { color: var(--fg-1); font-weight: 600; }
 .checks li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 0.6em; border-radius: 50%; background: var(--stream-empower); }
 
 .card { position: relative; padding: 32px; border-radius: 16px; background: var(--surface-card); border: 1px solid transparent; background-clip: padding-box; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); }
-.card::before { content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: 17px; background: var(--gradient-muloo); opacity: 0.6; }
+.card::before { content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: 17px; background: var(--gradient-logo-burst); opacity: 0.55; }
 .card h2 { font-size: 1.5rem; margin-bottom: 8px; }
 .card p { color: var(--fg-2); }
 .steps { list-style: none; margin: 24px 0; display: grid; gap: 14px; counter-reset: s; }

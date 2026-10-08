@@ -14,6 +14,7 @@ export interface Lead { f: string; l: string; e: string; c: string; s: string }
 
 export const LEAD_COOKIE = 'mu_lead';
 export const STATE_COOKIE = 'mu_oauth_state';
+export const REPORT_COOKIE = 'mu_report';
 
 const secret = () => process.env.AUDIT_COOKIE_SECRET || process.env.HUBSPOT_CLIENT_SECRET || '';
 const clean = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -25,21 +26,26 @@ export function normaliseLead(input: unknown): Lead | null {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.e) ? lead : null;
 }
 
-export function sealLead(lead: Lead): string {
-    const body = Buffer.from(JSON.stringify(lead)).toString('base64url');
+/** HMAC-sign any JSON payload so the browser can carry it but not change it. */
+export function seal(payload: unknown): string {
+    if (!secret()) throw new Error('AUDIT_COOKIE_SECRET is not set');
+    const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
     const sig = crypto.createHmac('sha256', secret()).update(body).digest('base64url');
     return `${body}.${sig}`;
 }
 
-export function openLead(value: string | undefined): Lead | null {
+export function unseal<T>(value: string | undefined): T | null {
     if (!value || !secret()) return null;
     const [body, sig] = value.split('.');
     if (!body || !sig) return null;
     const expected = crypto.createHmac('sha256', secret()).update(body).digest('base64url');
     const a = Buffer.from(sig), b = Buffer.from(expected);
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
-    try { return normaliseLead(JSON.parse(Buffer.from(body, 'base64url').toString('utf8'))); } catch { return null; }
+    try { return JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as T; } catch { return null; }
 }
+
+export const sealLead = (lead: Lead) => seal(lead);
+export const openLead = (value: string | undefined) => normaliseLead(unseal(value));
 
 export function readCookie(request: Request, name: string): string | undefined {
     const header = request.headers.get('cookie') || '';

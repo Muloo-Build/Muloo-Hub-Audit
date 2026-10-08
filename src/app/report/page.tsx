@@ -1,138 +1,159 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import styles from './report.module.css';
+import { CATEGORIES, CHECK_BY_ID, NOT_COVERED, describe, rank, verdict, type AuditRun, type CheckResult } from '@/app/lib/checks';
 
 const GATE_URL = process.env.NEXT_PUBLIC_MULOO_GATE_URL || 'https://www.wearemuloo.com/hubspot-audit';
 const BOOK_URL = process.env.NEXT_PUBLIC_MULOO_BOOK_URL || 'https://www.wearemuloo.com/book-a-call';
 
 const REASONS: Record<string, string> = {
-    'not-connected': 'HubSpot access was not approved, so there was nothing to audit.',
+    'not-connected': 'HubSpot access was not approved, so there was nothing to score.',
     expired: 'The connection took too long or was opened in another tab. Start it again.',
-    token: 'HubSpot did not hand back access. This is usually a permissions issue on the portal.',
+    token: 'HubSpot did not hand back access. This is usually a permissions issue on the portal: you need to be a super admin, or have app install rights.',
     audit: 'We connected, but the checks could not finish. We have been notified.',
 };
 
+const LABEL: Record<CheckResult['status'], string> = { fail: 'Critical', warn: 'Warning', pass: 'Passed', skip: 'Not checked' };
+
+function band(score: number) { return score >= 85 ? styles.good : score >= 60 ? styles.mid : styles.low; }
+
+function Finding({ r }: { r: CheckResult }) {
+    const { def, text } = describe(r);
+    return (
+        <article className={`${styles.finding} ${styles[r.status]}`}>
+            <header className={styles.findingHead}>
+                <span className={`mono ${styles.pill} ${styles[r.status]}`}>{LABEL[r.status]}</span>
+                <span className={`mono ${styles.cat}`}>{CATEGORIES.find(c => c.id === def.category)?.label}</span>
+            </header>
+            <h3>{def.title}</h3>
+            <p className={styles.result}>{text}</p>
+            <p className={styles.why}>{def.why}</p>
+            <div className={styles.fix}><strong>The fix.</strong> {def.fix}</div>
+        </article>
+    );
+}
+
 function ReportContent() {
-    const searchParams = useSearchParams();
-    const status = searchParams.get('status');
-    const dataString = searchParams.get('data');
-    const [reportDate, setReportDate] = useState('');
+    const params = useSearchParams();
+    const status = params.get('status');
+    const [data, setData] = useState<{ run: AuditRun; firstName: string; company: string } | null>(null);
+    const [missing, setMissing] = useState(false);
 
     useEffect(() => {
-        setReportDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
-    }, []);
+        if (status !== 'success') return;
+        fetch('/api/report', { cache: 'no-store' })
+            .then(r => (r.ok ? r.json() : Promise.reject()))
+            .then(setData)
+            .catch(() => setMissing(true));
+    }, [status]);
 
-    let auditData = null;
-    try {
-        if (dataString) {
-            auditData = JSON.parse(decodeURIComponent(dataString));
-        }
-    } catch (e) {
-        console.error('Failed to parse audit data from URL');
-    }
-
-    const overallScore = auditData?.overallScore ?? 0;
-    const metrics = auditData?.metrics ?? [];
-
-    if (status !== 'success') {
-        const reason = REASONS[searchParams.get('reason') || ''] || 'There was an issue connecting to your HubSpot portal.';
+    if (status !== 'success' || missing) {
+        const reason = missing
+            ? 'This report has expired, or it was opened on a different browser. Reports stay on the device that ran them for seven days.'
+            : REASONS[params.get('reason') || ''] || 'There was an issue connecting to your HubSpot portal.';
         return (
-            <div className={styles.container}>
-                <h2>The audit did not complete</h2>
+            <div className={styles.state}>
+                <p className="mono eyebrow">Free portal score</p>
+                <h1>{missing ? 'We cannot find that report' : 'The score did not complete'}</h1>
                 <p>{reason}</p>
-                <div className={styles.ctaActions}>
-                    <a href="/start" className="btn-primary">Try again</a>
+                <div className={styles.actions}>
+                    <a href="/start" className="btn-primary">Run it again</a>
                     <a href={BOOK_URL} className="btn-ghost">Talk to a specialist instead</a>
                 </div>
             </div>
         );
     }
 
+    if (!data) return <p className={styles.loading}>Opening your report…</p>;
+
+    const { run, firstName, company } = data;
+    const ranked = rank(run.checks);
+    const issues = ranked.filter(c => c.status === 'fail' || c.status === 'warn');
+    const passed = ranked.filter(c => c.status === 'pass');
+    const skipped = ranked.filter(c => c.status === 'skip');
+    const count = (s: CheckResult['status']) => run.checks.filter(c => c.status === s).length;
+    const v = verdict(run.score);
+    const date = new Date(run.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <h1>Your HubSpot audit</h1>
-                <p>Analysed on {reportDate}</p>
+                <div>
+                    <p className="mono eyebrow">Free portal score</p>
+                    <h1>{firstName ? `${firstName}, here is your portal score.` : 'Here is your portal score.'}</h1>
+                    <p className={styles.meta}>{[company, run.portalDomain, run.hubId ? `Hub ID ${run.hubId}` : '', date].filter(Boolean).join('  ·  ')}</p>
+                </div>
+                <a className="btn-primary" href="/api/report/pdf" download>Download the PDF</a>
             </header>
 
-            <section className={styles.scoreSection}>
-                <div className={styles.scoreCircle}>
-                    <span className={styles.scoreValue}>{overallScore}</span>
-                    <span className={styles.scoreLabel}>/ 100</span>
+            <section className={styles.scorePanel} aria-label="Score">
+                <div className={`${styles.ring} ${band(run.score)}`} style={{ ['--p' as string]: run.score }}>
+                    <span className={styles.scoreValue}>{run.score}</span>
+                    <span className={`mono ${styles.scoreOf}`}>out of 100</span>
                 </div>
                 <div className={styles.scoreText}>
-                    <h2>{overallScore >= 85 ? 'In good shape' : overallScore >= 60 ? 'Worth fixing' : 'Action required'}</h2>
-                    <p>{overallScore >= 85 ? 'The basics are sound. The findings below are the edges worth tidying before they grow.' : 'Your portal runs, but it is leaking time and trust. Each finding below comes with the fix.'}</p>
+                    <h2 className={band(run.score)}>{v.label}</h2>
+                    <p>{v.line}</p>
+                    <ul className={styles.tally}>
+                        <li><b className={styles.failText}>{count('fail')}</b> critical</li>
+                        <li><b className={styles.warnText}>{count('warn')}</b> warnings</li>
+                        <li><b className={styles.passText}>{count('pass')}</b> passed</li>
+                    </ul>
                 </div>
+                <ul className={styles.cats}>
+                    {CATEGORIES.map(c => {
+                        const rs = run.checks.filter(r => CHECK_BY_ID[r.id]?.category === c.id && r.status !== 'skip');
+                        if (!rs.length) return null;
+                        const pts = rs.reduce((a, r) => a + (r.status === 'pass' ? 1 : r.status === 'warn' ? 0.5 : 0), 0);
+                        const p = Math.round((pts / rs.length) * 100);
+                        return (
+                            <li key={c.id}>
+                                <span className={styles.catLabel}>{c.label}</span>
+                                <span className={styles.bar}><span className={band(p)} style={{ width: `${Math.max(p, 4)}%` }} /></span>
+                                <span className={`mono ${styles.catPct}`}>{p}</span>
+                            </li>
+                        );
+                    })}
+                </ul>
             </section>
 
-            <section className={styles.resultsGrid}>
-                {metrics.map((metric: { title: string; status: 'success' | 'warning' | 'error'; description: string; recommendation?: string }, i: number) => (
-                    <div key={i} className={`${styles.resultCard} ${styles[metric.status]}`}>
-                        <div className={styles.cardHeader}>
-                            <span className={`${styles.statusDot} ${styles[metric.status]}`} aria-label={metric.status === 'success' ? 'Passed' : metric.status === 'warning' ? 'Warning' : 'Critical'} role="img" />
-                            <h3>{metric.title}</h3>
-                        </div>
-                        <p>{metric.description}</p>
+            {issues.length > 0 && (
+                <section className={styles.block}>
+                    <h2>What to fix, worst first</h2>
+                    <div className={styles.findings}>{issues.map(r => <Finding key={r.id} r={r} />)}</div>
+                </section>
+            )}
 
-                        {/* Render actionable advice if the test did not pass */}
-                        {metric.status !== 'success' && metric.recommendation && (
-                            <div className={styles.recommendationBox}>
-                                <strong>The fix:</strong> {metric.recommendation}
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </section>
+            {passed.length > 0 && (
+                <section className={styles.block}>
+                    <h2>What passed</h2>
+                    <ul className={styles.passList}>
+                        {passed.map(r => <li key={r.id}><strong>{CHECK_BY_ID[r.id].title}.</strong> {describe(r).text}</li>)}
+                    </ul>
+                </section>
+            )}
 
-            {/* Educational / Methodology Section */}
-            <section className={styles.methodologySection}>
-                <div className={styles.methodologyHeader}>
-                    <h2>What exactly are we auditing?</h2>
-                    <p>This automated check is just the surface. A true HubSpot transformation requires a deep understanding of your commercial goals. Here is our full 4-Step Blueprint methodology:</p>
-                </div>
+            {skipped.length > 0 && (
+                <p className={styles.skipNote}>
+                    Not checked: {skipped.map(r => CHECK_BY_ID[r.id].title.toLowerCase()).join(', ')}. Usually that means there were no records of that kind, or the connecting user could not see them. Unchecked items do not count towards the score.
+                </p>
+            )}
 
-                <div className={styles.stepsGrid}>
-                    <div className={styles.stepCard}>
-                        <div className={styles.stepNumber}>01</div>
-                        <h3>Commercial & Sales Alignment Workshop</h3>
-                        <p>We collaborate with leadership to map your 2026 goals, regional sales structures, revenue streams, and handover points. The blueprint must be built around your real-world operations.</p>
-                    </div>
-
-                    <div className={styles.stepCard}>
-                        <div className={styles.stepNumber}>02</div>
-                        <h3>CRM Audit & Data Assessment</h3>
-                        <p>A deep dive inside your portal (where automated tools cannot go) to evaluate user adoption, behavioural data, tracking, scoring layers, and the gaps between your current system and future needs.</p>
-                    </div>
-
-                    <div className={styles.stepCard}>
-                        <div className={styles.stepNumber}>03</div>
-                        <h3>System Design & Blueprinting</h3>
-                        <p>We produce a structured playbook outlining optimised data architecture, standardised sales methodologies, automation opportunities, and reporting frameworks for leadership to scale across regions.</p>
-                    </div>
-
-                    <div className={styles.stepCard}>
-                        <div className={styles.stepNumber}>04</div>
-                        <h3>Review & Presentation</h3>
-                        <p>A dedicated session with your leadership to walk through our findings, priority recommendations, resourcing options, and a clear timeline for getting your CRM right.</p>
+            <section className={styles.upsell}>
+                <div>
+                    <p className="mono eyebrow">What this score cannot see</p>
+                    <h2>Thirteen checks is the surface. The HubSpot Audit goes underneath.</h2>
+                    <p>The free score reads counts and settings. The full audit runs 58 checks with root cause analysis and sector benchmarking, and you get downloadable findings with a guide to fixing them yourself. Once off, findings within five working days.</p>
+                    <div className={styles.actions}>
+                        <a className="btn-primary" href={GATE_URL}>See the HubSpot Audit</a>
+                        <a className="btn-ghost" href={BOOK_URL}>Book a call instead</a>
                     </div>
                 </div>
-            </section>
-
-            <section className={styles.ctaSection}>
-                <div className={styles.ctaCard}>
-                    <h2>Want the rest of the picture?</h2>
-                    <p>
-                        This automated test identified immediate technical debt, but resolving your core efficiency issues requires a strategic plan.
-                        Book a call to talk through the full <strong>HubSpot Blueprint Audit</strong> and get a step-by-step remediation plan built around your business.
-                    </p>
-                    <div className={styles.ctaActions}>
-                        <a className="btn-primary" href={BOOK_URL}>Book forty five minutes with a specialist</a>
-                        <a className="btn-ghost" href={GATE_URL.replace('/hubspot-audit', '/solutions/portal-rescue')}>See portal rescue</a>
-                    </div>
-                </div>
+                <ul className={styles.notCovered}>
+                    {NOT_COVERED.map(x => <li key={x}>{x}</li>)}
+                </ul>
             </section>
         </div>
     );
@@ -141,7 +162,7 @@ function ReportContent() {
 export default function ReportPage() {
     return (
         <main className={styles.pageWrapper}>
-            <Suspense fallback={<div className={styles.loading}>Generating your audit...</div>}>
+            <Suspense fallback={<p className={styles.loading}>Opening your report…</p>}>
                 <ReportContent />
             </Suspense>
         </main>

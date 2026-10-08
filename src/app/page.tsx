@@ -53,15 +53,16 @@ export default function Start() {
   return (
     <main className={styles.wrap}>
       <section className={styles.copy}>
-        <p className={`mono ${styles.eyebrow}`}>Free HubSpot audit</p>
+        <p className="mono eyebrow">Free portal score</p>
         <h1>{firstName ? <>{firstName}, one step left. <span className="text-gradient">Connect your portal.</span></> : <>Connect your portal and <span className="text-gradient">see what is wrong with it.</span></>}</h1>
-        <p className={styles.lead}>The audit runs live against your own HubSpot data, so the score is about your portal, not a benchmark. It takes about a minute.</p>
+        <p className={styles.lead}>Thirteen checks run live against your own HubSpot data, so the score is about your portal, not a benchmark. It takes about a minute, and you leave with a PDF you can share with your team.</p>
         <ul className={styles.checks}>
-          <li>Leads with no owner, and what that does to routing</li>
-          <li>Who holds super admin, and whether they should</li>
-          <li>Custom property sprawl on contacts</li>
-          <li>Deals that have stalled in the pipeline</li>
-          <li>Contacts arriving with no attributable source</li>
+          <li><strong>Ownership.</strong> Contacts and open deals nobody is accountable for</li>
+          <li><strong>Pipeline.</strong> Deals past their close date, gone quiet, or with no amount</li>
+          <li><strong>Data quality.</strong> Missing emails, lifecycle stages and company links</li>
+          <li><strong>Access.</strong> Who holds super admin, and whether they should</li>
+          <li><strong>Data model.</strong> Property sprawl, undocumented and duplicate properties</li>
+          <li><strong>Attribution.</strong> How many contacts you cannot trace to a channel</li>
         </ul>
       </section>
 
@@ -73,13 +74,13 @@ export default function Start() {
             <h2>Connect HubSpot</h2>
             <p>You approve access on HubSpot&apos;s own screen. Nothing is changed in your portal.</p>
             <ol className={styles.steps}>
-              <li><span><strong>Approve read only access.</strong> Contacts, deals, company properties and users.</span></li>
+              <li><span><strong>Approve read only access.</strong> Contacts, deals, property definitions and users. We count records, we never copy them.</span></li>
               <li><span><strong>We run the checks.</strong> Live, against your data, in about a minute.</span></li>
-              <li><span><strong>Your report opens.</strong> Score, findings and the fix for each one.</span></li>
+              <li><span><strong>Your report opens.</strong> Score, findings, the fix for each one, and a PDF to keep. Our access ends there.</span></li>
             </ol>
             <a className={`btn-primary ${styles.btn}`} href="/api/auth/hubspot">Connect HubSpot and run the audit</a>
             <p className={`mono ${styles.note}`}>You need to be a HubSpot super admin, or have app install rights.</p>
-            <p className={styles.alt}>Would rather not connect it? <a href={BOOK_URL}>Book forty five minutes with a specialist</a> and we will walk through it with you.</p>
+            <p className={styles.alt}>Would rather not connect it? <a href={BOOK_URL}>Book a call with a specialist</a> and we will walk through it with you.</p>
           </>
         )}
       </section>

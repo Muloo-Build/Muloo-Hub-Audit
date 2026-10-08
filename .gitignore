@@ -5,10 +5,6 @@
 /.pnp
 .pnp.*
 .yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
 # testing
 /coverage
@@ -39,3 +35,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# --- Muloo baseline (SOP-004) ---
+node_modules/
+dist/
+build/
+.next/
+.wrangler/
+.vinext/
+.venv/
+__pycache__/
+coverage/
+.env
+.env.*
+*.log
+upload.log
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+!.env.example
+!.env.*.example

@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { GATE_URL } from '@/app/lib/config';
 import { LEAD_COOKIE, STATE_COOKIE, openLead, readCookie } from '@/app/lib/lead';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
     const clientId = process.env.NEXT_PUBLIC_HUBSPOT_CLIENT_ID;
     const host = request.headers.get('host');
